@@ -1,6 +1,6 @@
-#Drupal 8 ReactJS Theme
+# Drupal 8 ReactJS Theme
 
-##Semi-Headless drupal
+## Semi-Headless drupal
 Drupal is still loaded we just add a class in the body template so that it would load on all of the custom pages that i have built out. In the future i do plan on making this completely headless but since its a theme form it will still need Drupal to activate it.
 
 Within a preprocess_html hook we add some variables to the Drupal settings the would pass over to the frontend
@@ -34,5 +34,5 @@ The ```grandera-application``` id determines if we should load the app on that p
   {% block navbar %}
 ```
 
-##Gulp
+## Gulp
 I utilized gulp as my task manger for this project.

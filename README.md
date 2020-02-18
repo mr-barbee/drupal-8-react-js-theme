@@ -6,22 +6,23 @@
     ├── build                                  # The Root folder for the ReactJS application.
     │  ├── Components                          # Site-wide Components accessible to the entire project.
     |  │  ├── SiteComponent
-    |  |  |  ├── SubComponent                  # Each Component can have sub components that should ONLY be accessible to parent  
+    |  |  |  ├── SubComponent                  # Each Component can have nested components that should ONLY be accessible to parent  
     |  |  |  |   └── index.js                  # component and its sub components.
     |  |  |  └── index.js                     
     |  |  └── ...  
     │  ├── Scenes
     |  |  ├── Page                             # These are the different pages of the site.
-    |  |  │  └── Components                    # Each page can have its own component accessible to that page only.
+    |  |  │  └── Components                    # Each page can have its own nested component accessible to that page only.
     |  |  |  |  └── PageComponent 
-    |  |  |  └──└──└── index.js               
+    |  |  |  |  └──└── index.js  
+    |  |  |  └── index.js 
     |  │  └── ...                           
     │  ├── Services
     |  |  └── AppService                       # A utility service helper classes for interacting with external API.
     |  |  |  └── index.js 
     |  |  └── ...
     │  ├── app.js                              # The main app file that pull in all of the pages.
-    │  └── index.js                            # This is the root index file that loads the app.
+    │  └── index.js                            # This is the root index file that loads and renders the app.
     └── ...
 The purpose of this structure was to keep the files organized while keeping in mind that the site will grow and utilize more pages and sub components.
 

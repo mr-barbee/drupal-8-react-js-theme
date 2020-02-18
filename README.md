@@ -1,12 +1,13 @@
 # Drupal 8 ReactJS Theme
 
 ## Semi-Headless drupal
-Drupal is still loaded we just add a class in the body template so that it would load on all of the custom pages that i have built out. In the future i do plan on making this completely headless but since its a theme form it will still need Drupal to activate it.
+Drupal is still loaded we just add a class in the body template so that it would load on all of the custom pages that I have built out.
+Therfore I can take advantage of the drupal session and page variables. In the future I do plan on making this completely headless but since its a theme form it will still need Drupal to activate it. 
 
 Within a preprocess_html hook we add some variables to the Drupal settings the would pass over to the frontend
 to determine which pages to show the theme and some settings to determine maintenance mode.
 
-```
+```php
 // Add the intro video and logo add assessts to JS.
 $variables['#attached']['drupalSettings']['logo']['url']['src'] = theme_get_setting('logo.url');
 $variables['#attached']['drupalSettings']['logo']['name']['src'] = $config->get('name');
@@ -26,7 +27,7 @@ $variables['#attached']['drupalSettings']['menuItems']['src'] = $menu;
 I set a page variable to determine if the app class should be applied to the page. I only apply it if the current page is listed in the menu or if the user is currently on the product or checkout pages. 
 The ```grandera-application``` id determines if we should load the app on that page.
 
-```
+```php
 {% set page_container = show_application ? 'grandera-application' : 'normal-site' %}
 <div id="{{ page_container }}">
 {# Navbar #}

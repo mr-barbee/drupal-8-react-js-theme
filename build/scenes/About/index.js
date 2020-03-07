@@ -9,6 +9,7 @@ import {
   getParagraphArtists
 } from './../../services/redux/reducers/AboutUsReducer';
 import * as drupalServices from './../../services/DrupalServices'
+import GoogleAnalytics from './../../services/GoogleAnalytics'
 import Loader from './../../components/Loader'
 import Image from './../../components/Images'
 
@@ -16,6 +17,7 @@ class About extends Component {
   constructor(props){
     super(props)
     this.renderSocialLinks = this.renderSocialLinks.bind(this)
+    this.goToSocial = this.goToSocial.bind(this)
   }
 
   componentDidMount() {
@@ -44,6 +46,17 @@ class About extends Component {
     }
   }
 
+  goToSocial(url, title) {
+    const analytics = new GoogleAnalytics()
+    analytics.trackEvent('Clicked Social Links', {
+      category: 'social',
+      label: title,
+      value: ''
+    })
+    // open the link.
+    window.open(url, '_blank')
+  }
+
   render () {
     const { paragraphArtists, error, pending } = this.props
     const artists = Object.values(paragraphArtists).length ? Object.values(paragraphArtists) : false
@@ -52,13 +65,13 @@ class About extends Component {
       <div className='about-page'>
         {artists && pending == false &&
           <div className='container'>
-            <div className='col-md-6 col-md-push-3'>
+            <div className='bio-container'>
               {artists.map((artist, index) => {
                 return (
                   <div className='bio' key={index}>
-                    <div className='bio-image'>
+                    <div className='bio-image-container'>
                       <Parallax className="parallax-window" y={[-20, 20]} tagOuter="figure">
-                        <Image uuid={artist.relationships.fieldArtistPhoto.data.id} parallax={true} />
+                        <Image className="bio-image" uuid={artist.relationships.fieldArtistPhoto.data.id} parallax={true} />
                       </Parallax>
                     </div>
                     <div className='bio-info-container'>
@@ -72,7 +85,11 @@ class About extends Component {
                         {artist.attributes.fieldSocialShare.map((share, key) => {
                           return (
                             <li key={key}>
-                              <Link className='bio-social-link' to={share.uri}>{this.renderSocialLinks(share.title)}</Link>
+                              <div
+                                className='bio-social-link'
+                                onClick={() => this.goToSocial(share.uri, `${artist.attributes.fieldArtistName} - ${share.title}`)}>
+                                {this.renderSocialLinks(share.title)}
+                              </div>
                             </li>
                           )
                         })}

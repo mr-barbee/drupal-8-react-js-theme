@@ -27,8 +27,11 @@ class Checkout extends Component {
     }
     this.loadCommerceOrder = this.loadCommerceOrder.bind(this);
   }
-  
+
   componentDidMount() {
+    // load the drupal store.
+    drupalServices.setOperationAndDispatch('commerceStoreOnline')
+    // load the comerce order.
     this.loadCommerceOrder()
   }
 
@@ -82,7 +85,8 @@ class Checkout extends Component {
     let mainContentClasses = ClassNames({
       'col-md-9': noOrderSummary == null,
       'col-md-pull-3': noOrderSummary == null,
-      'col-md-12': noOrderSummary !== null
+      'col-md-12': noOrderSummary !== null,
+      'checkout-content': true
     })
     return (
       <div className='store-checkout'>

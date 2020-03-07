@@ -10,6 +10,7 @@ import {
   getCommerceStorePending,
   getCommerceProductAttributeValueSize } from './../../../../services/redux/reducers/CommerceStoreReducer';
 import * as drupalServices from './../../../../services/DrupalServices'
+import GoogleAnalytics from './../../../../services/GoogleAnalytics'
 import Loader from './../../../../components/Loader'
 import Radio from './../../../../components/FieldElements/Radios'
 import ReactHtmlParser, { processNodes, convertNodeToElement, htmlparser2 } from 'react-html-parser'
@@ -33,17 +34,22 @@ class ProductView extends Component {
       productLoader: false,
       productAddedData: {}
     }
+    this._isMounted = false
     // Bind (this) to the functions.
-    this.goBack = this.goBack.bind(this);
-    this.productAddedToCart = this.productAddedToCart.bind(this);
-    this.cancelCartModal = this.cancelCartModal.bind(this);
-    this.addToCart = this.addToCart.bind(this);
-    this.srcSet = this.srcSet.bind(this);
-    this.updateViewerImage = this.updateViewerImage.bind(this);
-    this.updateCurrentProductVariation = this.updateCurrentProductVariation.bind(this);
+    this.goBack = this.goBack.bind(this)
+    this.productAddedToCart = this.productAddedToCart.bind(this)
+    this.cancelCartModal = this.cancelCartModal.bind(this)
+    this.addToCart = this.addToCart.bind(this)
+    this.updateViewerImage = this.updateViewerImage.bind(this)
+    this.updateCurrentProductVariation = this.updateCurrentProductVariation.bind(this)
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false
   }
 
   componentDidMount() {
+    this._isMounted = true
     const { productId } = this.props.match.params
     // Get the uuid of the product.
     const uuid = drupalServices.getUuidFromInternalId(productId, 'product')
@@ -124,11 +130,18 @@ class ProductView extends Component {
    * @param  {object} data [description]
    */
   productAddedToCart(data) {
+    const rawProduct = data.response[0]
+    const analytics = new GoogleAnalytics()
+    analytics.trackEvent('Product Added to Cart', {
+      category: 'commerce',
+      label: rawProduct.purchased_entity.title,
+      value: ''
+    })
     // Set the In prop for the
     // add to cart modal.
-    this.setState({
+    this._isMounted && this.setState({
       inProp: true,
-      productAddedData: data.response[0],
+      productAddedData: rawProduct,
       productLoader: false
     })
   }
@@ -163,20 +176,6 @@ class ProductView extends Component {
     drupalServices.setOperationAndDispatch('commerceAddToCart', params, this.productAddedToCart)
     // start the add to cart Loader
     this.setState({ productLoader: true })
-  }
-
-  // @TODO Add a srcSet to the image magnify so we can
-  //       use a cauresel instead and pass this as a prop
-  //       to the Image componenet.
-  //
-  srcSet() {
-    const { commerceProductVariations} = this.props
-    const { currentVariation } = this.state
-    const productVariations = Object.keys(commerceProductVariations).includes(currentVariation)  ? commerceProductVariations : false
-    return productVariations[currentVariation].relationships.fieldProductImages.data.map(image => {
-      // @TODO name: 'wristwatch_355.jpg', vw: '355w'
-      return `${image.id} ${image.vw}`;
-    }).join(', ')
   }
 
   render () {

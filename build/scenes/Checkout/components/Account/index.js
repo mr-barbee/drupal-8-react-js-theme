@@ -27,6 +27,7 @@ class Account extends Component {
       error: this.props.error,
       errors: {}
     }
+    this._isMounted = false
     // Bind (this) to the functions.
     this.review = this.review.bind(this);
     this.setShippingMethods = this.setShippingMethods.bind(this);
@@ -35,6 +36,14 @@ class Account extends Component {
     this.setInputValue = this.setInputValue.bind(this);
     this.submitInput = this.submitInput.bind(this);
     this.goBack = this.goBack.bind(this);
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false
+  }
+
+  componentDidMount() {
+    this._isMounted = true
   }
 
   componentDidUpdate() {
@@ -65,7 +74,7 @@ class Account extends Component {
     // set the default options.
     let shippingMethod
     const shippingOptions = []
-    if (data.error == undefined) {
+    if (data.error == undefined && this._isMounted) {
       // Add the default shipping method and
       // add each individual option to the state.
       data.response.shippingMethods.forEach((method, key) => {
@@ -76,14 +85,14 @@ class Account extends Component {
         shippingOptions.push({ value: method.id, name: method.amount + ' ' + method.name})
       })
     }
-    this.setState({ loadedMethod: true, shippingMethod, shippingOptions })
+    this._isMounted && this.setState({ loadedMethod: true, shippingMethod, shippingOptions })
   }
 
   setShippingProfile(data) {
     // set the default options.
     let shippingProfile = {}
     let { error } = this.state
-    if (data.error == undefined) {
+    if (data.error == undefined && this._isMounted) {
       // only save the shipping profile if its an object.
       if (typeof data.response.shippingProfile == 'object') {
         shippingProfile = data.response.shippingProfile
@@ -92,7 +101,7 @@ class Account extends Component {
     else {
       error = data.error
     }
-    this.setState({ loadedProfile: true, shippingProfile, error })
+    this._isMounted && this.setState({ loadedProfile: true, shippingProfile, error })
   }
 
   setInputValue (element, value) {
@@ -147,11 +156,13 @@ class Account extends Component {
   }
 
   review(data) {
-    if (data.error == undefined) {
-      // Redirect the cart page.
-      this.props.history.push(`/checkout/${this.props.match.params.orderId}/review`)
-    } else {
-      this.setState({ postingData: false })
+    if (this._isMounted) {
+      if (data.error == undefined) {
+        // Redirect the cart page.
+        this.props.history.push(`/checkout/${this.props.match.params.orderId}/review`)
+      } else {
+        this.setState({ postingData: false })
+      }
     }
   }
 

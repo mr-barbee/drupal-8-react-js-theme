@@ -51,7 +51,7 @@ class Music extends Component {
                   }
                   {value.attributes.fieldMediaType == 'youtube' &&
                     <div className='youtube-container'>
-                      <Iframe uuid={value.relationships.fieldMedia.data.id} height="500" width="100%" />
+                      <Iframe className='yt-iframe' uuid={value.relationships.fieldMedia.data.id} />
                     </div>
                   }
                 </div>

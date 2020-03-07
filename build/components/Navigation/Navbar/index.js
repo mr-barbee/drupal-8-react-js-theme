@@ -38,7 +38,7 @@ class Navbar extends Component {
 
   render () {
     return (
-      <div className='container'>
+      <div className='container nav-container'>
         <nav>
           <div className='logoImageContainers'>
             <Link to='/'><img className='logoImage' src={drupalSettings.logo.url.src} /></Link>

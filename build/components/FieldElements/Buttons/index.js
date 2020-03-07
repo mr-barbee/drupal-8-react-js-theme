@@ -27,6 +27,7 @@ export default class Buttons extends Component {
     return (
       <Button
         disabled={this.props.disabled}
+        id={this.state.id}
         color='inherit'
         variant={this.state.variant}
         onClick={() => { this.props.onClick(this.state.id) }} >

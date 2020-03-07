@@ -58,7 +58,7 @@ class Images extends Component {
     const { uuid, media } = this.props
     // Set the params to be passed into the drupal api.
     const params = uuid && drupalServices.checkData('mediaImage', uuid) == false ? { operationId: uuid }
-                  : uuid == false && media != undefined ? {mediaId: media}
+                  : uuid == false && media != undefined && drupalServices.getUuidFromInternalId(media, 'image') == false ? {mediaId: media}
                   : {}
     if (Object.keys(params).length) {
       // Load the image from drupal.
@@ -106,7 +106,7 @@ class Images extends Component {
           </div>
         }
         {picture == false &&
-          <img className="loader" width={width} height={height} src="/themes/custom/granderaent/img/loading-spinner.gif" />
+          <img className={className} width={width} height={height} src="/themes/custom/granderaent/img/loading-spinner.gif" />
         }
       </div>
     )

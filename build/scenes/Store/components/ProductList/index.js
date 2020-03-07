@@ -3,7 +3,6 @@ import { connect } from 'react-redux'
 import { Link } from "react-router-dom"
 import { Parallax } from 'react-scroll-parallax'
 import {
-  getCommerceStore,
   getCommerceProducts,
   getCommerceStoreError,
   getCommerceStorePending
@@ -22,15 +21,7 @@ class ProductList extends Component {
   }
 
   componentDidMount() {
-    const { commerceStoreOnline, error, pending } = this.props
-    // Only update if the medial collection item isnt already
-    // in the redux store. If its not then fetch the data.
-    // @TODO Rather than look for length check for a specific
-    //       item was loaded with drupalServices.checkData.
-    //       Passing in the ID as a prop
-    if (Object.values(commerceStoreOnline).length == 0) {
-      drupalServices.setOperationAndDispatch('commerceStoreOnline')
-    }
+    const { error, pending } = this.props
     // Get the all of the products from the store.
     if (error == null && pending == false) {
       drupalServices.setOperationAndDispatch('commerceProductDefault')
@@ -81,7 +72,6 @@ class ProductList extends Component {
 
 const mapStateToProps = state => ({
   error: getCommerceStoreError(state),
-  commerceStoreOnline: getCommerceStore(state),
   commerceProducts: getCommerceProducts(state),
   pending: getCommerceStorePending(state),
 })

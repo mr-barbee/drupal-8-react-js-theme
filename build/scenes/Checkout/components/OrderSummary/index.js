@@ -14,15 +14,22 @@ class OrderSummary extends Component {
     super(props)
     this.state = {
       summaryLoaded: false,
-      orderSummary: []
+      orderSummary: [],
+      showCheckout: false
     }
+    this._isMounted = false
     // Bind (this) to the functions.
     this.setOrderSummary = this.setOrderSummary.bind(this);
     this.checkout = this.checkout.bind(this);
     this.updateOrderSummary = this.updateOrderSummary.bind(this);
   }
 
+  componentWillUnmount() {
+    this._isMounted = false
+  }
+
   componentDidMount() {
+    this._isMounted = true
     this.updateOrderSummary()
   }
 
@@ -51,7 +58,10 @@ class OrderSummary extends Component {
 
   setOrderSummary(data) {
     if (data.error == undefined) {
-      this.setState({ orderSummary: data.response.totalAdjustments, summaryLoaded: true })
+      this._isMounted && this.setState({ orderSummary: data.response.totalAdjustments, summaryLoaded: true, showCheckout: true })
+    }
+    else {
+      this._isMounted && this.setState({ showCheckout: false, summaryLoaded: true })
     }
   }
 
@@ -61,25 +71,25 @@ class OrderSummary extends Component {
   }
 
   render () {
-    const showCheckout = matchPath(this.props.location.pathname, {
+    const onCart = matchPath(this.props.location.pathname, {
       path: '/checkout',
       exact: true,
       strict: false
     });
 
-    const { orderSummary } = this.state
+    const { orderSummary, showCheckout } = this.state
     const { commerceCart } = this.props
     return (
       <div className='order-summary'>
         <div>
           <h3>Order Summary</h3>
-          <p>Subtotal: {orderSummary.length !== 0 ? orderSummary.subtotal : '$0.00'}</p>
-          {orderSummary.shipping !== undefined &&
+          <p>Subtotal: {orderSummary.length !== 0 && showCheckout ? orderSummary.subtotal : '$0.00'}</p>
+          {orderSummary.shipping !== undefined && showCheckout &&
             <p>Shipping: {orderSummary.shipping}</p>
           }
-          <p>Tax: {orderSummary.length !== 0 ? orderSummary.tax : '$0.00'}</p>
-          <p>Total Price: {orderSummary.length !== 0 ? orderSummary.total : '$0.00'}</p>
-          {showCheckout !== null && typeof(commerceCart) === 'object' && Object.keys(commerceCart).includes('order_id') &&
+          <p>Tax: {orderSummary.length !== 0 && showCheckout ? orderSummary.tax : '$0.00'}</p>
+          <p>Total Price: {orderSummary.length !== 0 && showCheckout ? orderSummary.total : '$0.00'}</p>
+          {showCheckout && onCart !== null && typeof(commerceCart) === 'object' && Object.keys(commerceCart).includes('order_id') &&
             <Button
               id='checkout'
               label='Checkout'

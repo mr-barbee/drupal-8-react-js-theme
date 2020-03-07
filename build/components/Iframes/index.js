@@ -61,7 +61,7 @@ class Iframes extends Component {
           </div>
         }
         {videoID == false &&
-          <img className='loader' width={width} height={height} src="/themes/custom/granderaent/img/hd-spinner.gif" />
+          <img className={className} width={width} height={height} src="/themes/custom/granderaent/img/hd-spinner.gif" />
         }
       </div>
     )

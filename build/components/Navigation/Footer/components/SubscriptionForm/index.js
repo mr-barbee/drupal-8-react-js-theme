@@ -11,6 +11,7 @@ import Button from '../../../../FieldElements/Buttons'
 import TextField from '../../../../FieldElements/Textfields'
 import validation from '../../../../FieldElements/Validation'
 import * as drupalServices from './../../../../../services/DrupalServices'
+import GoogleAnalytics from './../../../../../services/GoogleAnalytics'
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -91,6 +92,12 @@ export default class SubscriptionForm extends Component {
     } else {
       errors.technical = data.error.message
     }
+    const analytics = new GoogleAnalytics()
+    analytics.trackEvent('Subscription Form', {
+      category: 'subscribe',
+      label: 'Newsletter',
+      value: ''
+    })
     this.setState({ isSubscribed, successMessage, errors })
   }
 

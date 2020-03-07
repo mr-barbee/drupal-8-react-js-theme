@@ -4,8 +4,10 @@ import { Link, withRouter } from "react-router-dom";
 import {
   getCommerceCart,
   getCommerceCartPending,
-  getCommerceCartError } from './../../../../services/redux/reducers/CommerceStoreReducer';
+  getCommerceCartError } from './../../../../services/redux/reducers/CommerceStoreReducer'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import * as drupalServices from './../../../../services/DrupalServices'
+import GoogleAnalytics from './../../../../services/GoogleAnalytics'
 import Button from './../../../../components/FieldElements/Buttons'
 import TextField from './../../../../components/FieldElements/Textfields'
 import Loader from './../../../../components/Loader'
@@ -15,8 +17,10 @@ class Cart extends Component {
   constructor(props){
     super(props);
     this.state = {
-      cartUpdating: false
+      cartUpdating: false,
+      analytics: new GoogleAnalytics()
     }
+    this._isMounted = false
     // Bind (this) to the functions.
     this.deleteCart = this.deleteCart.bind(this);
     this.cartUpdated = this.cartUpdated.bind(this);
@@ -25,7 +29,12 @@ class Cart extends Component {
     this.getQuantityOptions = this.getQuantityOptions.bind(this);
   }
 
+  componentWillUnmount() {
+    this._isMounted = false
+  }
+
   componentDidMount() {
+    this._isMounted = true
     // Load the cart information.
     drupalServices.setOperationAndDispatch('commerceCart')
   }
@@ -38,7 +47,12 @@ class Cart extends Component {
   updateCartItem(orderItemId , quantity) {
     const params = { orderId: this.props.commerceCart.order_id, orderItemId, quantity }
     drupalServices.setOperationAndDispatch('commerceUpdateCartItem', params, this.cartUpdated)
-    this.setState({ cartUpdating: true })
+    this.state.analytics.trackEvent('Update Cart Item', {
+      category: 'commerce',
+      label: 'Quantity Update',
+      value: this.props.commerceCart.order_id
+    })
+    this.setState({ cartUpdating: orderItemId })
   }
 
   /**
@@ -49,7 +63,12 @@ class Cart extends Component {
     // delete the cart item.
     const params = { orderId: this.props.commerceCart.order_id, orderItemId }
     drupalServices.setOperationAndDispatch('commerceDeleteCartItem', params, this.cartUpdated)
-    this.setState({ cartUpdating: true })
+    this.state.analytics.trackEvent('Delete Cart Item', {
+      category: 'commerce',
+      label: 'Remove item',
+      value: this.props.commerceCart.order_id
+    })
+    this.setState({ cartUpdating: orderItemId })
   }
 
   /**
@@ -58,13 +77,20 @@ class Cart extends Component {
   deleteCart() {
     const params = { orderId: this.props.commerceCart.order_id }
     drupalServices.setOperationAndDispatch('commerceDeleteCart', params, this.cartUpdated)
+    this.state.analytics.trackEvent('Delete Cart', {
+      category: 'commerce',
+      label: 'Remove entire cart',
+      value: this.props.commerceCart.order_id
+    })
     this.setState({ cartUpdating: true })
   }
 
   cartUpdated() {
-    // Load the cart information.
-    drupalServices.setOperationAndDispatch('commerceCart')
-    this.setState({ cartUpdating: false })
+    if (this._isMounted) {
+      // Load the cart information.
+      drupalServices.setOperationAndDispatch('commerceCart')
+      this.setState({ cartUpdating: false })
+    }
   }
 
   getQuantityOptions(quantity) {
@@ -89,6 +115,7 @@ class Cart extends Component {
 
   render () {
     const { commerceCart, error, pending } = this.props
+    const { cartUpdating } = this.state
     const cart = commerceCart !== undefined && Object.values(commerceCart).length ? commerceCart : false
 
     return (
@@ -107,14 +134,11 @@ class Cart extends Component {
                           <a onClick={() => this.deleteCartItem(orderItem.order_item_id)}><i className='fas fa-times-circle'></i></a>
                         </div>
                         <div className='row'>
-                          <div className='col-xs-3'>
+                          <div className='col-sm-3 col-xs-5'>
                             <Image className='cart-item-image' width={120} height={160} uuid={false} media={id} />
                           </div>
-                          <div className='col-xs-9'>
+                          <div className='col-sm-8 col-xs-6'>
                             <div className='row'>
-                              <div className='cart-item-sku col-md-12'>
-                                <p>Sku : {orderItem.purchased_entity.sku}</p>
-                              </div>
                               <div className='cart-item-title col-md-12'>
                                 <p>Title : {orderItem.purchased_entity.title}</p>
                               </div>
@@ -129,6 +153,9 @@ class Cart extends Component {
                                   options={this.getQuantityOptions(orderItem.quantity)}
                                   select
                                 />
+                                {cartUpdating == orderItem.order_item_id &&
+                                  <CircularProgress />
+                                }
                               </div>
                             </div>
                           </div>
@@ -139,16 +166,25 @@ class Cart extends Component {
                       </div>
                     )
                   })}
-                  <Button
-                    id='deleteCart'
-                    label='Delete Entire Cart'
-                    onClick={this.deleteCart}
-                    variant='outlined'
-                    disabled={this.cartUpdating}
-                  />
+                  <div className='delete-cart'>
+                    {cartUpdating !== true &&
+                      <Button
+                        id='deleteCart'
+                        label='Delete Entire Cart'
+                        onClick={this.deleteCart}
+                        variant='outlined'
+                        disabled={this.cartUpdating}
+                      />
+                    }
+                    {cartUpdating == true &&
+                      <CircularProgress />
+                    }
+                  </div>
                 </div>
               }
-            <Link to='/store'>Continue Shopping</Link>
+              <div className='continue-shopping'>
+                <Link to='/store'>Continue Shopping</Link>
+              </div>
             </div>
           </div>
         }

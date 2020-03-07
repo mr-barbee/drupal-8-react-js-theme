@@ -7,29 +7,49 @@ import About from './scenes/About'
 import Store from './scenes/Store'
 import Checkout from './scenes/Checkout'
 import Maintenance from './scenes/Maintenance'
+import GoogleAnalytics from './services/GoogleAnalytics'
 import {
-  BrowserRouter as Router,
+  withRouter,
   Switch,
   Route } from "react-router-dom";
 
-const AppToHide = () => {
+const AppToHide = (props) => {
   // Maintenance if maintenance mode is set.
   if (drupalSettings.maintenanceMode == true){
     return <Maintenance />
   }
   // Else just return
   // the default App.
-  return <App />
+  return <App {...props} />
 }
 
 class App extends Component {
   constructor (props) {
     super(props)
+    this.state = {
+      analytics: new GoogleAnalytics()
+    }
+    this.onRouteChanged = this.onRouteChanged.bind(this)
+  }
+
+  componentDidMount() {
+    this.state.analytics.trackPageView()
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.location !== prevProps.location) {
+      this.onRouteChanged();
+    }
+  }
+
+  onRouteChanged() {
+    // Track the page view.
+    this.state.analytics.trackPageView()
   }
 
   render () {
     return (
-      <Router>
+      <div>
         <Navbar />
         <div className="main-content">
           <Switch>
@@ -51,9 +71,9 @@ class App extends Component {
           </Switch>
         </div>
         <Footer />
-      </Router>
+      </div>
     )
   }
 }
 
-export default AppToHide
+export default withRouter(AppToHide)

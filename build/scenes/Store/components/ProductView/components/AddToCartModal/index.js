@@ -77,10 +77,9 @@ class AddToCartModal extends Component {
         >
           { this.state.open && this.props.data.error == undefined &&
             <div>
-              <DialogTitle id='form-dialog-title'>Product added to the cart</DialogTitle>
+              <DialogTitle id='form-dialog-title'>Product added to the cart!</DialogTitle>
               <DialogContent>
                 <h2>{this.props.data.purchased_entity.title}</h2>
-                <h4>Sku: {this.props.data.purchased_entity.sku}</h4>
                 <h4>Price: {this.props.data.purchased_entity.price.formatted}</h4>
                 <DialogContentText>
                   You can go straight to the cart or update the product here.
@@ -90,7 +89,7 @@ class AddToCartModal extends Component {
                 <Button
                   id='continue'
                   label='Continue Shopping'
-                  onClick={this.handleClose}
+                  onClick={this.continueShopping}
                 />
                 <Button
                   id='cart'

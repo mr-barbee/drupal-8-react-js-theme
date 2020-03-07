@@ -1,16 +1,16 @@
 import React, {Component} from 'react'
-import {Link} from "react-router-dom";
-import { connect } from 'react-redux';
+import {Link} from "react-router-dom"
+import { connect } from 'react-redux'
 import {
   getVideoscreenError,
   getVideoscreen,
   getVideoscreenPending
-} from './../../services/redux/reducers/VideoscreenReducer';
-import { getMediaVideo, getFile } from './../../services/redux/reducers/MediaReducer';
+} from './../../services/redux/reducers/VideoscreenReducer'
+import { getMediaImage, getFile } from './../../services/redux/reducers/MediaReducer'
 import * as drupalServices from './../../services/DrupalServices'
-import Loader from './../../components/Loader';
-import { Transition } from 'react-transition-group';
-import { transitionDuration, defaultTransitionStyle, transitionStyles } from './../../components/Constants';
+import Loader from './../../components/Loader'
+import { Transition } from 'react-transition-group'
+import { transitionDuration, defaultTransitionStyle, transitionStyles } from './../../components/Constants'
 
 
 class VideoScreen extends Component {
@@ -48,49 +48,36 @@ class VideoScreen extends Component {
   }
 
   render () {
-    const { nodeVideoscreen, mediaVideo, file, pending } = this.props
+    const { nodeVideoscreen, mediaImage, file } = this.props
     const videoscreen = Object.values(nodeVideoscreen).length ? Object.values(nodeVideoscreen)[0] : false
-    const videoFileId = Object.values(mediaVideo).length && videoscreen ?
-                      mediaVideo[videoscreen.relationships.fieldExternalMedia.data.id].relationships.fieldMediaVideoFile.data.id :
+    const rawPicture = Object.values(mediaImage).length && videoscreen ? videoscreen.relationships.fieldExternalMedia.data : false
+    // Gather the picture from the image collection.
+    const bgImage = rawPicture && Object.keys(mediaImage).includes(rawPicture.id) ?
+                      file[mediaImage[rawPicture.id].relationships.fieldMediaImage.data.id] :
                       false
-    const videoUrl = Object.values(file).length && videoFileId ?
-                      file[videoFileId].attributes.uri.url : false
-    console.log(videoUrl);
-    console.log(file);
-    console.log(videoFileId);
     const link = {
       url : videoscreen ? videoscreen.attributes.fieldVideoEnterLink.uri.split(':')[1] : '/',
       title: videoscreen ? videoscreen.attributes.fieldVideoEnterLink.title : ''
     }
     return (
       <div className='videoInterface'>
-        <Transition in={videoUrl !== false} timeout={transitionDuration}>
+        <Transition in={bgImage !== false} timeout={transitionDuration}>
           {state => (
             <div style={{
               ...defaultTransitionStyle,
               ...transitionStyles[state]
             }}>
-              <div className='row no-gutters'>
-                <div className='col-md-4 col-md-push-4 col-xs-8 col-xs-push-2 logoEnter'>
-                  <img className='logoImage' src={drupalSettings.logo.url.src} />
-                  <div className='enterText animated infinite pulse'><Link to={link.url}>{link.title}</Link></div>
-                </div>
+              <div className='logoEnter'>
+                <img className='logoImage' src={drupalSettings.logo.url.src} />
+                <div className='enterText animated infinite pulse'><Link to={link.url}>{link.title}</Link></div>
               </div>
-              <div className="video-background">
-                <div className="video-foreground">
-                  {videoUrl &&
-                    <video id="background-video" loop autoPlay muted>
-                      <source src={videoUrl} type="video/mp4" />
-                      <source src={videoUrl} type="video/ogg" />
-                      Your browser does not support the video tag.
-                    </video>
-                  }
-                </div>
-              </div>
+              {bgImage &&
+                <div className="background-image"  style={{backgroundImage: `url(${bgImage.attributes.uri.url})`}} />
+              }
             </div>
           )}
         </Transition>
-        <Loader label='Loading...' full={true} inProp={videoUrl == false}   />
+        <Loader label='Loading...' full={true} inProp={bgImage == false}   />
       </div>
     )
   }
@@ -99,7 +86,7 @@ class VideoScreen extends Component {
 const mapStateToProps = state => ({
   error: getVideoscreenError(state),
   nodeVideoscreen: getVideoscreen(state),
-  mediaVideo: getMediaVideo(state),
+  mediaImage: getMediaImage(state),
   file: getFile(state),
   pending: getVideoscreenPending(state)
 })

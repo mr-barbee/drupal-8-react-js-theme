@@ -6,6 +6,7 @@ import {
   getCommerceOrderPending,
   getCommerceOrderError,
   getCommerceOrder } from './../../../../services/redux/reducers/CommerceStoreReducer'
+import GoogleAnalytics from './../../../../services/GoogleAnalytics'
 import * as drupalServices from './../../../../services/DrupalServices'
 import Button from './../../../../components/FieldElements/Buttons'
 import Loader from './../../../../components/Loader'
@@ -21,6 +22,7 @@ class Review extends Component {
       postingData: false,
       error: this.props.error
     }
+    this._isMounted = false
     // Bind (this) to the functions.
     this.setPayPalSmartButtons = this.setPayPalSmartButtons.bind(this);
     this.goBack = this.goBack.bind(this);
@@ -29,6 +31,14 @@ class Review extends Component {
     this.makeCall = this.makeCall.bind(this);
     this.checkoutComplete = this.checkoutComplete.bind(this);
     this.setShippingProfile = this.setShippingProfile.bind(this);
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false
+  }
+
+  componentDidMount() {
+    this._isMounted = true
   }
 
   componentDidUpdate() {
@@ -68,14 +78,16 @@ class Review extends Component {
   }
 
   setShippingProfile(data) {
-    let { error } = this.state
-    let shippingProfile = {}
-    if (data.error == undefined) {
-      shippingProfile = data.response.shippingProfile
-    } else {
-     error = data.error
-   }
-    this.setState({ shippingProfile, error })
+    if (this._isMounted) {
+      let { error } = this.state
+      let shippingProfile = {}
+      if (data.error == undefined) {
+        shippingProfile = data.response.shippingProfile
+      } else {
+       error = data.error
+      }
+      this.setState({ shippingProfile, error })
+    }
   }
 
   createOrder() {
@@ -103,10 +115,18 @@ class Review extends Component {
 
   checkoutComplete(data) {
     if (data.error == undefined) {
-      // Redirect the cart page.
-      this.props.history.push(`/checkout/${this.props.match.params.orderId}/complete`)
+      const analytics = new GoogleAnalytics()
+      analytics.trackEvent('Completed Order', {
+        category: 'commerce',
+        label: `Finished Order #${this.props.match.params.orderId}`,
+        value: this.props.match.params.orderId
+      })
+      if (this._isMounted) {
+        // Redirect the cart page.
+        this.props.history.push(`/checkout/${this.props.match.params.orderId}/complete`)
+      }
     } else {
-      this.setState({ error: data.error })
+      this._isMounted && this.setState({ error: data.error })
     }
   }
 
@@ -123,7 +143,7 @@ class Review extends Component {
     const { shippingProfile, postingData, paypalCheckout, error } = this.state
 
     return (
-      <div className='store-cart'>
+      <div className='checkout-review'>
         {pending == false && postingData == false && error == null && paypalCheckout &&
           <div>
             <Button
@@ -134,22 +154,26 @@ class Review extends Component {
             />
             <h3>Review</h3>
             {shippingProfile &&
-              <div>
-                <h4>Account Email</h4>
-                <p>Email: {shippingProfile.email}</p>
-                <h4>Shipping Address</h4>
-                <p>First Name: {shippingProfile.given_name}</p>
-                <p>Last Name: {shippingProfile.family_name}</p>
-                {shippingProfile.organization &&
-                  <p>Organization: {shippingProfile.organization}</p>
-                }
-                <p>Address Line 1: {shippingProfile.address_line1}</p>
-                {shippingProfile.address_line2 &&
-                  <p>Address Line 2: {shippingProfile.address_line2}</p>
-                }
-                <p>City: {shippingProfile.locality}</p>
-                <p>State: {constants.usStates(shippingProfile.administrative_area)[1]}</p>
-                <p>Zip Code: {shippingProfile.postal_code}</p>
+              <div className='review-information'>
+                <div className='section'>
+                  <h4>Email Address</h4>
+                  <p>{shippingProfile.email}</p>
+                </div>
+                <div className='section'>
+                  <h4>Shipping Address</h4>
+                  <p>First Name: {shippingProfile.given_name}</p>
+                  <p>Last Name: {shippingProfile.family_name}</p>
+                  {shippingProfile.organization &&
+                    <p>Organization: {shippingProfile.organization}</p>
+                  }
+                  <p>Address Line 1: {shippingProfile.address_line1}</p>
+                  {shippingProfile.address_line2 &&
+                    <p>Address Line 2: {shippingProfile.address_line2}</p>
+                  }
+                  <p>City: {shippingProfile.locality}</p>
+                  <p>State: {constants.usStates(shippingProfile.administrative_area)[1]}</p>
+                  <p>Zip Code: {shippingProfile.postal_code}</p>
+                </div>
               </div>
             }
             <PayPalSDKWrapper clientId={this.state.paypalCheckout.clientId}>
@@ -160,7 +184,7 @@ class Review extends Component {
            </PayPalSDKWrapper>
           </div>
         }
-        <Loader label='Loading...' inProp={pending || postingData || paypalCheckout == false} />
+        <Loader inProp={pending || postingData || paypalCheckout == false} />
         {error != null &&
           <ErrorCodes error={error} />
         }

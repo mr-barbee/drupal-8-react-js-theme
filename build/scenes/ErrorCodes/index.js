@@ -7,7 +7,7 @@ export default class ErrorCodes extends Component {
 
   render () {
     return (
-      <div>
+      <div className='errorScreen'>
         {this.props.error != null && this.props.error.status == 404 &&
           <div>
             <h3>404 Page Not Found</h3>

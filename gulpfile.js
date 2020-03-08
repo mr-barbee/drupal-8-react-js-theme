@@ -11,30 +11,32 @@ var browserify = require('browserify');
 var babelify = require('babelify');
 var source = require('vinyl-source-stream');
 var streamify = require('gulp-streamify');
+var buffer = require('vinyl-buffer')
+var terser = require('gulp-terser');
 
 gulp.task('imagemin', function () {
-  return gulp.src('./themes/custom/granderaent/images/*')
+  return gulp.src('./src/img/*')
     .pipe(imagemin({
         progressive: true,
         svgoPlugins: [{removeViewBox: false}],
         use: [pngquant()]
     }))
-    .pipe(gulp.dest('./themes/custom/granderaent/images'));
+    .pipe(gulp.dest('./src/img'));
 });
 
 gulp.task('sass', function () {
-  gulp.src(['./themes/custom/granderaent/sass/*.scss',
-    './themes/custom/granderaent/sass/**/*.scss',
+  gulp.src(['./src/sass/*.scss',
+    './src/sass/**/*.scss',
     ])
     .pipe(sourcemaps.init())
     .pipe(sass({outputStyle: 'compressed'}).on('error', sass.logError))
     .pipe(autoprefixer('last 2 version', 'safari 5', 'ie 7', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4'))
     .pipe(sourcemaps.write('./maps'))
-    .pipe(gulp.dest('./themes/custom/granderaent/css'));
+    .pipe(gulp.dest('./src/css'));
 });
 
 gulp.task('react', () => {
-  return browserify('./themes/custom/granderaent/build/index.js')
+  return browserify('./src/build/index.js')
     .transform(babelify, {
                           presets: ["@babel/preset-env", "@babel/preset-react"],
                           plugins: ["@babel/plugin-proposal-class-properties"]
@@ -42,28 +44,24 @@ gulp.task('react', () => {
                       )
     .bundle()
     .pipe(source('build.min.js'))
-    .pipe(gulp.dest('./themes/custom/granderaent/js'))
     .pipe(streamify(concat('build.min.js')))
-    // TODO Add back when development is finsihed.
-    // .pipe(streamify(uglify()))
-    // .pipe(sourcemaps.write('./maps'))
-    .pipe(gulp.dest('./themes/custom/granderaent/js'));
+    .pipe(gulp.dest('./src/js'));
 });
 
-gulp.task('watch', function(){
-  // livereload.listen();
-
-  gulp.watch(['./themes/custom/granderaent/sass/*.scss',
-    './themes/custom/granderaent/sass/**/*.scss',
-    ], ['sass']);
-  gulp.watch(['./themes/custom/granderaent/build/*.js',
-    './themes/custom/granderaent/build/**/*.js'
-    ], ['react']);
-  // gulp.watch([['./themes/custom/granderaent/sass/*.scss',
-  //   './themes/custom/granderaent/sass/**/*.scss',
-  //   ], './themes/custom/granderaent/**/*.twig', './themes/custom/granderaent/js/*.js'], function (files){
-  //     livereload.changed(files)
-  // });
+gulp.task('react-production', function () {
+  process.env.NODE_ENV = 'production';
+  return browserify('./src/build/index.js')
+    .transform('babelify', {
+                presets: ["@babel/preset-env", "@babel/preset-react"],
+                plugins: ["@babel/plugin-proposal-class-properties"]
+              })
+    .bundle()
+    .pipe(source('build.min.js'))
+    .pipe(buffer())    // Stream files
+    .pipe(terser()) // minifiy files
+    .pipe(sourcemaps.init({ loadMaps: true }))
+    .pipe(sourcemaps.write('./maps'))
+    .pipe(gulp.dest('./src/js'))
 });
 
 // Only using this due to resource limits.

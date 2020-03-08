@@ -10,7 +10,7 @@ import ProductView from './components/ProductView'
 const StoreToHide = props => {
   // Maintenance if maintenance mode is set.
   if (drupalSettings.disableStore == true){
-    return <Maintenance />
+    return <Maintenance absolutePostition={true} />
   }
   // Else just return
   // the default Store.

@@ -1,4 +1,4 @@
- import Analytics from 'analytics'
+import Analytics from 'analytics'
 import googleAnalytics from '@analytics/google-analytics'
 
 export default class GoogleAnalytics {

@@ -16,7 +16,7 @@ import {
 const AppToHide = (props) => {
   // Maintenance if maintenance mode is set.
   if (drupalSettings.maintenanceMode == true){
-    return <Maintenance />
+    return <Maintenance absolutePostition={false} />
   }
   // Else just return
   // the default App.
